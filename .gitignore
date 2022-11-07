@@ -1,2 +1,6 @@
-.gitattributes
-node_modules
+/.gitattributes
+/node_modules
+/packages
+/.vscode
+/*.log
+/.gitignore
