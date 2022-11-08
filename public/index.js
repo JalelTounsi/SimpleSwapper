@@ -1,6 +1,6 @@
-const BigNumber = require("bignumber.js");
 const qs = require("qs");
-const web3 = require("web3");
+const Web3 = require("Web3");
+const { default: BigNumber } = require("bignumber.js");
 
 let currentTrade = {};
 let currentSelectSide;
@@ -12,7 +12,11 @@ async function init() {
 
 async function listAvailableTokens() {
   console.log("initializing");
-  let response = await fetch("https://tokens.coingecko.com/uniswap/all.json");
+  let responseCoinGecko = await fetch(
+    "https://tokens.coingecko.com/uniswap/all.json"
+  );
+  let response = await fetch("https://www.gemini.com/uniswap/manifest.json");
+  //let response = await fetch("https://tokens.coingecko.com/uniswap/all.json");
   let tokenListJSON = await response.json();
   console.log("listing available tokens: ", tokenListJSON);
   tokens = tokenListJSON.tokens;
@@ -61,13 +65,27 @@ async function connect() {
   if (typeof window.ethereum !== "undefined") {
     try {
       console.log("connecting");
-      await ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      document.getElementById("login_button").innerHTML = "Connected";
+      $("#login_button").removeClass("btn-primary").addClass("btn-success");
+      document.getElementById("swap_button").disabled = false;
+      console.log("connected");
+      console.log("account: ", accounts[0]);
+      const accountPlaceholder = document.getElementById("accountPlaceholder");
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = [
+        `<div class="alert alert-success alert-dismissible fade show" role="alert">`,
+        `   <div>${accounts[0]}</div>`,
+        "</div>",
+      ].join("");
+
+      accountPlaceholder.append(wrapper);
+      document.getElementById("login_button").disabled = true;
     } catch (error) {
       console.log(error);
     }
-    document.getElementById("login_button").innerHTML = "Connected";
-    // const accounts = await ethereum.request({ method: "eth_accounts" });
-    document.getElementById("swap_button").disabled = false;
   } else {
     document.getElementById("login_button").innerHTML =
       "Please install MetaMask";
@@ -92,6 +110,7 @@ async function getPrice() {
     !document.getElementById("from_amount").value
   )
     return;
+
   let amount = Number(
     document.getElementById("from_amount").value *
       10 ** currentTrade.from.decimals
@@ -155,175 +174,7 @@ async function getQuote(account) {
 }
 
 async function trySwap() {
-  const erc20abi = [
-    {
-      inputs: [
-        { internalType: "string", name: "name", type: "string" },
-        { internalType: "string", name: "symbol", type: "string" },
-        { internalType: "uint256", name: "max_supply", type: "uint256" },
-      ],
-      stateMutability: "nonpayable",
-      type: "constructor",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "value",
-          type: "uint256",
-        },
-      ],
-      name: "Approval",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        { indexed: true, internalType: "address", name: "to", type: "address" },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "value",
-          type: "uint256",
-        },
-      ],
-      name: "Transfer",
-      type: "event",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "owner", type: "address" },
-        { internalType: "address", name: "spender", type: "address" },
-      ],
-      name: "allowance",
-      outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "spender", type: "address" },
-        { internalType: "uint256", name: "amount", type: "uint256" },
-      ],
-      name: "approve",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [{ internalType: "address", name: "account", type: "address" }],
-      name: "balanceOf",
-      outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [{ internalType: "uint256", name: "amount", type: "uint256" }],
-      name: "burn",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "account", type: "address" },
-        { internalType: "uint256", name: "amount", type: "uint256" },
-      ],
-      name: "burnFrom",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "decimals",
-      outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "spender", type: "address" },
-        { internalType: "uint256", name: "subtractedValue", type: "uint256" },
-      ],
-      name: "decreaseAllowance",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "spender", type: "address" },
-        { internalType: "uint256", name: "addedValue", type: "uint256" },
-      ],
-      name: "increaseAllowance",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "name",
-      outputs: [{ internalType: "string", name: "", type: "string" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "symbol",
-      outputs: [{ internalType: "string", name: "", type: "string" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "totalSupply",
-      outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "recipient", type: "address" },
-        { internalType: "uint256", name: "amount", type: "uint256" },
-      ],
-      name: "transfer",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        { internalType: "address", name: "sender", type: "address" },
-        { internalType: "address", name: "recipient", type: "address" },
-        { internalType: "uint256", name: "amount", type: "uint256" },
-      ],
-      name: "transferFrom",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-  ];
+  const erc20abi = require("./erc20.abi.json");
   console.log("trying swap");
 
   // Only work if MetaMask is connect
@@ -352,6 +203,10 @@ async function trySwap() {
     .then((tx) => {
       console.log("tx: ", tx);
     });
+
+  // Perform the swap
+  const receipt = await web3.eth.sendTransaction(swapQuoteJSON);
+  console.log("receipt: ", receipt);
 }
 
 init();

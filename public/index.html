@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>swap machine</title>
+    <title>SimpleSwapper</title>
+    <link rel="icon" type="image/x-icon" href="images/mrRobot-icon.png">
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
@@ -13,10 +14,11 @@
   </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">simple swap machine</a>
+        <a class="navbar-brand" href="#"><img src="images/mrRobot-32x32.png"> SimpleSwapper</a>
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <button id="login_button" class="btn btn-outline-primary my-2 my-sm-0" type="submit">Sign in with MetaMask</button>
+            <button id="login_button" class="btn btn-primary btn-block  my-2 my-sm-0" type="submit"><img src="images/metamask.png" height="32" length="32"> Sign in with MetaMask</button>
+            <div id="accountPlaceholder"></div>
           </li>
       </nav>
       <div class ="container">
@@ -27,7 +29,7 @@
                     <div class="swapbox">
                         <div class="swapbox_select token_select" id="from_token_select">
                             <img class="token_img" id="from_token_img">
-                            <span id="from_token_text"></span>
+                            <span id="from_token_text">Select the token to swap</span>
                         </div>
                         <div class="swapbox_select">
                             <input class="number form-control" placeholder="amount" id="from_amount">
@@ -36,7 +38,7 @@
                     <div class="swapbox">
                         <div class="swapbox_select token_select" id="to_token_select">
                             <img class="token_img" id="to_token_img">
-                            <span id="to_token_text"></span>
+                            <span id="to_token_text">Select the token to receive</span>
                         </div>
                          <div class="swapbox_select">
                             <input class="number form-control" placeholder="amount" id="to_amount">
