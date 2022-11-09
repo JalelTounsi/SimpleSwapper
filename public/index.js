@@ -12,17 +12,9 @@ async function init() {
 
 async function listAvailableTokens() {
   console.log("initializing");
-  let responseCoinGecko = await fetch(
-    "https://tokens.coingecko.com/uniswap/all.json"
-  );
-  let response = await fetch("https://www.gemini.com/uniswap/manifest.json");
-  //let response = await fetch("https://tokens.coingecko.com/uniswap/all.json");
-  let tokenListJSON = await response.json();
-  console.log("listing available tokens: ", tokenListJSON);
-  tokens = tokenListJSON.tokens;
-  console.log("tokens: ", tokens);
-
   // Create token list for modal
+  let tokenListJSON = require("./tokenslist.json");
+  let tokens = tokenListJSON.tokens;
   let parent = document.getElementById("token_list");
   for (const i in tokens) {
     // Token row in the modal token list
@@ -134,6 +126,11 @@ async function getPrice() {
     swapPriceJSON.buyAmount / 10 ** currentTrade.to.decimals;
   document.getElementById("gas_estimate").innerHTML =
     swapPriceJSON.estimatedGas;
+
+  updateTokenPairPrice();
+  printTokenPairChart();
+  document.getElementById("charts_title").innerHTML =
+    currentTrade.from.symbol + "\\" + currentTrade.to.symbol;
 }
 
 async function getQuote(account) {
@@ -221,3 +218,134 @@ document.getElementById("to_token_select").onclick = () => {
 document.getElementById("modal_close").onclick = closeModal;
 document.getElementById("from_amount").onblur = getPrice;
 document.getElementById("swap_button").onclick = trySwap;
+
+//for the charts!!
+
+///  Calling API and modeling data for each chart ///
+
+const TokenPairData = async () => {
+  const sellToken = currentTrade.from.symbol;
+  const buyToken = currentTrade.to.symbol;
+
+  console.log("sell: ", currentTrade.from.symbol);
+  console.log("buy: ", currentTrade.to.symbol);
+  const response = await fetch(
+    `https://min-api.cryptocompare.com/data/v2/histominute?fsym=${sellToken}&tsym=${buyToken}&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`
+  );
+  //const response = await fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=LINK&tsym=DAI&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`);
+
+  const json = await response.json();
+  const data = json.Data.Data;
+  console.log("data: ", json.Data.Data);
+  const times = data.map((obj) => obj.time);
+  const prices = data.map((obj) => obj.high);
+  return {
+    times,
+    prices,
+  };
+};
+
+/// Error handling ///
+function checkStatus(response) {
+  if (response.ok) {
+    return Promise.resolve(response);
+  } else {
+    return Promise.reject(new Error(response.statusText));
+  }
+}
+
+async function printTokenPairChart() {
+  let { times, prices } = await TokenPairData();
+  let TokenPairChart = document
+    .getElementById("TokenPairChart")
+    .getContext("2d");
+
+  let gradient = TokenPairChart.createLinearGradient(0, 0, 0, 400);
+
+  gradient.addColorStop(0, "rgba(78,56,216,.5)");
+  gradient.addColorStop(0.425, "rgba(118,106,192,0)");
+
+  Chart.defaults.global.defaultFontFamily = "Red Hat Text";
+  Chart.defaults.global.defaultFontSize = 12;
+  createTokenPairChart = new Chart(TokenPairChart, {
+    type: "line",
+    data: {
+      labels: times,
+      xValueType: "dateTime",
+      datasets: [
+        {
+          //label: "$",
+          data: prices,
+          backgroundColor: gradient,
+          borderColor: "rgba(118,106,192,1)",
+          borderJoinStyle: "round",
+          borderCapStyle: "round",
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHitRadius: 10,
+          lineTension: 0.2,
+        },
+      ],
+    },
+
+    options: {
+      title: {
+        display: false,
+        text: "Simple Swapper Chart!",
+        fontSize: 35,
+      },
+
+      legend: {
+        display: false,
+      },
+
+      layout: {
+        padding: {
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+        },
+      },
+
+      scales: {
+        xAxes: [
+          {
+            display: true,
+            gridLines: {},
+          },
+        ],
+        yAxes: [
+          {
+            display: true,
+            gridLines: {},
+          },
+        ],
+      },
+
+      tooltips: {
+        callbacks: {
+          //This removes the tooltip title
+          title: function () {},
+        },
+        //this removes legend color
+        displayColors: false,
+        yPadding: 10,
+        xPadding: 10,
+        position: "nearest",
+        caretSize: 10,
+        backgroundColor: "rgba(255,255,255,.9)",
+        bodyFontSize: 15,
+        bodyFontColor: "#303030",
+      },
+    },
+  });
+}
+
+/// Update current price ///
+async function updateTokenPairPrice() {
+  let { times, prices } = await TokenPairData();
+  let currentPrice = prices[prices.length - 1].toFixed(2);
+
+  document.getElementById("ethPrice").innerHTML = currentPrice;
+}

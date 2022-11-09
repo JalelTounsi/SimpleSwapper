@@ -1,7 +1,11 @@
 {
   "dependencies": {
+    "@0x/contract-wrappers": "^13.22.10",
     "bignumber.js": "^9.1.0",
     "browserify": "^17.0.0",
+    "browserify-fs": "^1.0.0",
+    "electron-store": "^8.1.0",
+    "fs": "^0.0.1-security",
     "qs": "^6.11.0",
     "web3": "^1.8.0"
   }

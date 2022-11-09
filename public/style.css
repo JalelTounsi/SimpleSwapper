@@ -1,42 +1,119 @@
-#window{
-    margin-top: 50px;
-    background-color: #fbfbfb;
-    color: #000;
-    padding: 15px;
-    border-radius: 20px;
-    box-shadow: 0 0 5px black;
+#window {
+  width: 100%;
+  height: 100%;
+  background-color: #fbfbfb;
+  color: #000;
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: 0 0 5px black;
 }
 .swapbox_select {
-    width: 50%;
-    float: left;
+  width: 50%;
+  float: left;
+  height: 50%;
 }
-.swapbox{
-    overflow: auto;
-    margin: 20px 0;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 20px;
-    border: 1px solid #565656;
+.swapbox {
+  overflow: auto;
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+  border: 1px solid #565656;
 }
-.token_select{
-    padding:5px 0;
+.token_select {
+  padding: 5px 0;
 }
-.token_select:hover{
-    background-color: #f1f1f1;
-    cursor: pointer;
-    
+.token_select:hover {
+  cursor: pointer;
 }
-.token_row{
-    padding: 5px 10px;
+.token_row {
+  padding: 5px 10px;
 }
-.token_row:hover{
-    background-color: #e4e4e4;
-    cursor: pointer;
+.token_row:hover {
+  background-color: #e4e4e4;
+  cursor: pointer;
 }
-.gas_estimate_label{
-    padding:5px;
+.gas_estimate_label {
+  padding: 5px;
 }
-.modal-body{
-    height: 500px;
-    overflow: scroll;   
+.modal-body {
+  height: 500px;
+  overflow: scroll;
+}
+
+.from_amount{
+  float: right;
+  width: 100%;
+  height: 100%;
+}
+
+
+/* for the charts */
+h1 {
+  font-size: 1.5em;
+}
+
+h2 {
+  font-size: 1.25em;
+}
+
+h1,
+h2,
+p {
+  font-family: "Red Hat Text", sans-serif;
+  color: #303030;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+cards {
+  width: 90%;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+.swapper,
+.TokenPair {
+  display: grid;
+  max-width: 500px;
+  min-width: 450px;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(50px, 60px) 1fr;
+  grid-template:
+    "info"
+    "chart";
+  border-radius: 30px;
+}
+
+.swapper,
+.TokenPair {
+  box-shadow: 10px 10px 20px 1px rgba(78, 56, 216, 0.15);
+}
+
+.asset-info {
+  grid-area: info;
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5% 0 5%;
+}
+
+.title {
+  display: inline-flex;
+}
+
+card h1 {
+  margin-left: 10px;
+}
+
+#TokenPairChart {
+  grid-area: chart;
+  border-radius: 0px 0px 30px 30px;
+  margin-top: auto;
 }
