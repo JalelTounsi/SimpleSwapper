@@ -1,2 +1,2 @@
 # SimpleSwapper
-a simple erc20 Swapper using 0x API
+an erc20 Dex/Swapper using 0x API with DeFi/DeX aggregator in order to get the best prices and quotes.
