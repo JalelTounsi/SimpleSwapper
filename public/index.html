@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>SimpleSwapper</title>
+    <title>DeX Aggregator</title>
     <link rel="icon" type="image/x-icon" href="images/mrRobot-icon.png">
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -16,7 +16,7 @@
   </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#"><img src="images/mrRobot-32x32.png"> SimpleSwapper</a>
+        <a class="navbar-brand" href="#"><img src="images/mrRobot-32x32.png"> DeX Aggregator</a>
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
             <button id="login_button" class="btn btn-primary btn-block  my-2 my-sm-0" type="submit"><img src="images/metamask.png" height="32" length="32"> Sign in with MetaMask</button>
@@ -25,49 +25,32 @@
       </nav>
       <div class ="container">
         <div class="row">
-          <div class="col">
-            <cards class="cards">
-                <TokenPair class="TokenPair">
-                    <card class="asset-info">
-                        <div class="title">
-                            <h1><span id="charts_title"></span></h1>
-                        </div>
-                        <div class="details">
-                            <h2 class="asset-price" id="ethPrice"></h2>
-                        </div>
-                    </card>
-                    <canvas id="TokenPairChart"></canvas>
-                </TokenPair>
-            </cards>
-        </div>
         <div class="col">
           <cards class="cards">
             <swapper class="swapper">
             <!-- <card class="asset-info"> -->
                 <card class="asset-info" id="window">
-                <div id="form">
+                <div id="form" style="width:100%">
                     <div class="swapbox">
-                      <div><span>You pay</span></div>
                         <div class="swapbox_select token_select" id="from_token_select">
                             <img class="token_img" id="from_token_img">
-                            <span id="from_token_text">Token to swap</span>
+                            <span id="from_token_text">Token you give</span>
                         </div>
                         <div class="swapbox_select">
                             <input class="number form-control" placeholder="amount" id="from_amount">
                         </div>
                     </div>
                     <div class="swapbox">
-                      <div><span>You receive</span></div>
                         <div class="swapbox_select token_select" id="to_token_select">
                             <img class="token_img" id="to_token_img">
-                            <span id="to_token_text">Token to receive</span>
+                            <span id="to_token_text">Token you receive</span>
                         </div>
                          <div class="swapbox_select">
                             <input class="number form-control" placeholder="amount" id="to_amount">
                         </div>
                     </div>  
-                    <div class="gas_estimate_label">Estimated Gas: <span id="gas_estimate"></span></div>
-                    <button disabled class="btn btn-large btn-primary btn-block" id="swap_button">Swap</button>                
+                    <div class="gas_estimate_label"><h8>Estimated Gas: <span id="gas_estimate"></span></h8></div>
+                    <button disabled class="btn btn-sm btn-primary btn-block" id="swap_button">Swap</button>                
                 </div>
           </card>
         </swapper>

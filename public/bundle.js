@@ -5290,6 +5290,13 @@ let tokens;
 
 async function init() {
   await listAvailableTokens();
+  document.getElementById("from_amount").value = 0;
+  document.getElementById("to_amount").value = 0;
+  document.getElementById("from_amount").placeholder = "Amount";
+  document.getElementById("to_amount").placeholder = "Amount";
+
+  document.getElementById("from_token_img").setAttribute("hidden", "hidden");
+  document.getElementById("to_token_img").setAttribute("hidden", "hidden");
 }
 
 async function listAvailableTokens() {
@@ -5303,7 +5310,7 @@ async function listAvailableTokens() {
     let div = document.createElement("div");
     div.className = "token_row";
     let html = `
-        <img class="token_list_img" src="${tokens[i].logoURI}">
+        <img class="token_list_img" src="${tokens[i].logoURI}" style="height:25px; width=25px border=0" >
           <span class="token_list_text">${tokens[i].symbol}</span>
           `;
     div.innerHTML = html;
@@ -5327,11 +5334,13 @@ function renderInterface() {
     document.getElementById("from_token_img").src = currentTrade.from.logoURI;
     document.getElementById("from_token_text").innerHTML =
       currentTrade.from.symbol;
+      document.getElementById("from_token_img").removeAttribute("hidden");
   }
   if (currentTrade.to) {
     console.log(currentTrade.to);
     document.getElementById("to_token_img").src = currentTrade.to.logoURI;
     document.getElementById("to_token_text").innerHTML = currentTrade.to.symbol;
+    document.getElementById("to_token_img").removeAttribute("hidden");
   }
 }
 
@@ -5408,12 +5417,8 @@ async function getPrice() {
     swapPriceJSON.buyAmount / 10 ** currentTrade.to.decimals;
   document.getElementById("gas_estimate").innerHTML =
     swapPriceJSON.estimatedGas;
+  }
 
-  updateTokenPairPrice();
-  printTokenPairChart();
-  document.getElementById("charts_title").innerHTML =
-    currentTrade.from.symbol + "\\" + currentTrade.to.symbol;
-}
 
 async function getQuote(account) {
   console.log("Getting Quote");
@@ -5500,401 +5505,379 @@ document.getElementById("to_token_select").onclick = () => {
 document.getElementById("modal_close").onclick = closeModal;
 document.getElementById("from_amount").onblur = getPrice;
 document.getElementById("swap_button").onclick = trySwap;
-
-//for the charts!!
-
-///  Calling API and modeling data for each chart ///
-
-const TokenPairData = async () => {
-  const sellToken = currentTrade.from.symbol;
-  const buyToken = currentTrade.to.symbol;
-
-  console.log("sell: ", currentTrade.from.symbol);
-  console.log("buy: ", currentTrade.to.symbol);
-  const response = await fetch(
-    `https://min-api.cryptocompare.com/data/v2/histominute?fsym=${sellToken}&tsym=${buyToken}&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`
-  );
-  //const response = await fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=LINK&tsym=DAI&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`);
-
-  const json = await response.json();
-  const data = json.Data.Data;
-  console.log("data: ", json.Data.Data);
-  const times = data.map((obj) => obj.time);
-  const prices = data.map((obj) => obj.high);
-  return {
-    times,
-    prices,
-  };
-};
-
-/// Error handling ///
-function checkStatus(response) {
-  if (response.ok) {
-    return Promise.resolve(response);
-  } else {
-    return Promise.reject(new Error(response.statusText));
-  }
-}
-
-async function printTokenPairChart() {
-  let { times, prices } = await TokenPairData();
-  let TokenPairChart = document
-    .getElementById("TokenPairChart")
-    .getContext("2d");
-
-  let gradient = TokenPairChart.createLinearGradient(0, 0, 0, 400);
-
-  gradient.addColorStop(0, "rgba(78,56,216,.5)");
-  gradient.addColorStop(0.425, "rgba(118,106,192,0)");
-
-  Chart.defaults.global.defaultFontFamily = "Red Hat Text";
-  Chart.defaults.global.defaultFontSize = 12;
-console.log("times: ",times);
-
-console.log("something");
-
-times.foreach(function(time) {
-  time = new Date(Date.UTC(time));
-  console.log("time: ", time);
-});
-console.log("times modified: ",times);
-  createTokenPairChart = new Chart(TokenPairChart, {
-    type: "line",
-    data: {
-      labels: times,
-      xValueType: "dateTime",
-      datasets: [
-        {
-          //label: "$",
-          data: prices,
-          backgroundColor: gradient,
-          borderColor: "rgba(118,106,192,1)",
-          borderJoinStyle: "round",
-          borderCapStyle: "round",
-          borderWidth: 3,
-          pointRadius: 0,
-          pointHitRadius: 10,
-          lineTension: 0.2,
-        },
-      ],
-    },
-
-    options: {
-      title: {
-        display: false,
-        text: "Simple Swapper Chart!",
-        fontSize: 35,
-      },
-
-      legend: {
-        display: false,
-      },
-
-      layout: {
-        padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-        },
-      },
-
-      scales: {
-        xAxes: [
-          {
-            display: true,
-            gridLines: {},
-          },
-        ],
-        yAxes: [
-          {
-            display: true,
-            gridLines: {},
-          },
-        ],
-      },
-
-      tooltips: {
-        callbacks: {
-          //This removes the tooltip title
-          title: function () {},
-        },
-        //this removes legend color
-        displayColors: false,
-        yPadding: 10,
-        xPadding: 10,
-        position: "nearest",
-        caretSize: 10,
-        backgroundColor: "rgba(255,255,255,.9)",
-        bodyFontSize: 15,
-        bodyFontColor: "#303030",
-      },
-    },
-  });
-}
-
-/// Update current price ///
-async function updateTokenPairPrice() {
-  let { times, prices } = await TokenPairData();
-  let currentPrice = prices[prices.length - 1].toFixed(2);
-
-  document.getElementById("ethPrice").innerHTML = currentPrice;
-}
-
 },{"./erc20.abi.json":18,"./tokenslist.json":20,"Web3":1,"bignumber.js":2,"qs":13}],20:[function(require,module,exports){
 module.exports={
-    "tokens": [
-        {
-            "name": "1Inch",
-            "chainId": 1,
-            "symbol": "1INCH",
-            "decimals": 18,
-            "address": "0x111111111117dc0aa78b770fa6a738034120c302",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/1inch.svg"
-        },
-        {
-            "name": "AaveToken",
-            "chainId": 1,
-            "symbol": "AAVE",
-            "decimals": 18,
-            "address": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/aave.svg"
-        },
-        {
-            "name": "Amp",
-            "chainId": 1,
-            "symbol": "AMP",
-            "decimals": 18,
-            "address": "0xfF20817765cB7f73d4bde2e66e067E58D11095C2",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/amp.svg"
-        },
-        {
-            "name": "Balancer",
-            "chainId": 1,
-            "symbol": "BAL",
-            "decimals": 18,
-            "address": "0xba100000625a3754423978a60c9317c58a424e3D",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/bal.svg"
-        },
-        {
-            "name": "BasicAttentionToken",
-            "chainId": 1,
-            "symbol": "BAT",
-            "decimals": 18,
-            "address": "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/bat.svg"
-        },
-        {
-            "name": "Bancor",
-            "chainId": 1,
-            "symbol": "BNT",
-            "decimals": 18,
-            "address": "0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/bnt.svg"
-        },
-        {
-            "name": "Compound",
-            "chainId": 1,
-            "symbol": "COMP",
-            "decimals": 18,
-            "address": "0xc00e94Cb662C3520282E6f5717214004A7f26888",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/comp.svg"
-        },
-        {
-            "name": "CurveDAOToken",
-            "chainId": 1,
-            "symbol": "CRV",
-            "decimals": 18,
-            "address": "0xD533a949740bb3306d119CC777fa900bA034cd52",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/crv.svg"
-        },
-        {
-            "name": "DaiStablecoin",
-            "chainId": 1,
-            "symbol": "DAI",
-            "decimals": 18,
-            "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/dai.svg"
-        },
-        {
-            "name": "KyberNetwork",
-            "chainId": 1,
-            "symbol": "KNC",
-            "decimals": 18,
-            "address": "0xdd974D5C2e2928deA5F71b9825b8b646686BD200",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/knc.svg"
-        },
-        {
-            "name": "Chainlink",
-            "chainId": 1,
-            "symbol": "LINK",
-            "decimals": 18,
-            "address": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/link.svg"
-        },
-        {
-            "name": "Loopring",
-            "chainId": 1,
-            "symbol": "LRC",
-            "decimals": 18,
-            "address": "0xbbbbca6a901c926f240b89eacb641d8aec7aeafd",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/lrc.svg"
-        },
-        {
-            "name": "Decentraland",
-            "chainId": 1,
-            "symbol": "MANA",
-            "decimals": 18,
-            "address": "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/mana.svg"
-        },
-        {
-            "name": "Maker",
-            "chainId": 1,
-            "symbol": "MKR",
-            "decimals": 18,
-            "address": "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/mkr.svg"
-        },
-        {
-            "name": "Sandbox",
-            "chainId": 1,
-            "symbol": "SAND",
-            "decimals": 18,
-            "address": "0x3845badAde8e6dFF049820680d1F14bD3903a5d0",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/sand.svg"
-        },
-        {
-            "name": "Skale",
-            "chainId": 1,
-            "symbol": "SKL",
-            "decimals": 18,
-            "address": "0x00c83aecc790e8a4453e5dd3b0b4b3680501a7a7",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/skl.svg"
-        },
-        {
-            "name": "Synthetix",
-            "chainId": 1,
-            "symbol": "SNX",
-            "decimals": 18,
-            "address": "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/snx.svg"
-        },
-        {
-            "name": "Storj",
-            "chainId": 1,
-            "symbol": "STORJ",
-            "decimals": 8,
-            "address": "0xB64ef51C888972c908CFacf59B47C1AfBC0Ab8aC",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/storj.svg"
-        },
-        {
-            "name": "UMAVotingTokenv1",
-            "chainId": 1,
-            "symbol": "UMA",
-            "decimals": 18,
-            "address": "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/uma.svg"
-        },
-        {
-            "name": "Uniswap",
-            "chainId": 1,
-            "symbol": "UNI",
-            "decimals": 18,
-            "address": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/uni.svg"
-        },
-        {
-            "name": "yearn.finance",
-            "chainId": 1,
-            "symbol": "YFI",
-            "decimals": 18,
-            "address": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/yfi.svg"
-        },
-        {
-            "name": "0xProtocol",
-            "chainId": 1,
-            "symbol": "ZRX",
-            "decimals": 18,
-            "address": "0xE41d2489571d322189246DaFA5ebDe1F4699F498",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/zrx.svg"
-        },
-        {
-            "name": "Polygon",
-            "chainId": 1,
-            "symbol": "MATIC",
-            "decimals": 18,
-            "address": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/matic.svg"
-        },
-        {
-            "name": "Sushiswap",
-            "chainId": 1,
-            "symbol": "SUSHI",
-            "decimals": 18,
-            "address": "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/sushi.svg"
-        },
-        {
-            "name": "Ankr Network",
-            "chainId": 1,
-            "symbol": "ANKR",
-            "decimals": 18,
-            "address": "0x8290333ceF9e6D528dD5618Fb97a76f268f3EDD4",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/ankr.svg"
-        },
-        {
-            "name": "Axie Infinity",
-            "chainId": 1,
-            "symbol": "AXS",
-            "decimals": 0,
-            "address": "0xBB0E17EF65F82Ab018d8EDd776e8DD940327B28b",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/axs.svg"
-        },
-        {
-            "name": "Shiba Inu",
-            "chainId": 1,
-            "symbol": "SHIB",
-            "decimals": 18,
-            "address": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/shib.svg"
-        },
-        {
-            "name": "Ethereum Name Service",
-            "chainId": 1,
-            "symbol": "ENS",
-            "decimals": 18,
-            "address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/ens.svg"
-        },
-        {
-            "name": "Lido DAO",
-            "chainId": 1,
-            "symbol": "LDO",
-            "decimals": 18,
-            "address": "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/ldo.svg"
-        },
-        {
-            "name": "ApeCoin",
-            "chainId": 1,
-            "symbol": "APE",
-            "decimals": 18,
-            "address": "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/ape.svg"
-        },
-        {
-            "name": "DeFi Pulse Index",
-            "chainId": 1,
-            "symbol": "DPI",
-            "decimals": 18,
-            "address": "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
-            "logoURI": "https://gemini.com/images/currencies/icons/default/dpi.svg"
+  "tokens": [
+    {
+      "chainId": 1,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "decimals": 18,
+      "address": "ETH",
+      "logoURI": "https://wallet-asset.matic.network/img/tokens/eth.svg"
+    },
+    {
+      "name": "1Inch",
+      "chainId": 1,
+      "symbol": "1INCH",
+      "decimals": 18,
+      "address": "0x111111111117dc0aa78b770fa6a738034120c302",
+      "logoURI": "https://gemini.com/images/currencies/icons/default/1inch.svg"
+    },
+    {
+      "chainId": 1,
+      "address": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      "name": "Aave",
+      "symbol": "AAVE",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png?1601374110"
+    },
+    {
+      "chainId": 1,
+      "address": "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      "name": "ApeCoin",
+      "symbol": "APE",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/24383/small/apecoin.jpg?1647476455"
+    },
+    {
+      "chainId": 1,
+      "address": "0x8290333ceF9e6D528dD5618Fb97a76f268f3EDD4",
+      "name": "Ankr",
+      "symbol": "ANKR",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/4324/thumb/U85xTl2.png?1608111978"
+    },
+    {
+      "chainId": 1,
+      "address": "0xBB0E17EF65F82Ab018d8EDd776e8DD940327B28b",
+      "name": "Axie Infinity",
+      "symbol": "AXS",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/13029/thumb/axie_infinity_logo.png?1604471082"
+    },
+    {
+      "name": "Balancer",
+      "chainId": 1,
+      "symbol": "BAL",
+      "decimals": 18,
+      "address": "0xba100000625a3754423978a60c9317c58a424e3D",
+      "logoURI": "https://gemini.com/images/currencies/icons/default/bal.svg"
+    },
+    {
+      "name": "BasicAttentionToken",
+      "chainId": 1,
+      "symbol": "BAT",
+      "decimals": 18,
+      "address": "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
+      "logoURI": "https://gemini.com/images/currencies/icons/default/bat.svg"
+    },
+    {
+      "name": "Bancor",
+      "chainId": 1,
+      "symbol": "BNT",
+      "decimals": 18,
+      "address": "0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c",
+      "logoURI": "https://gemini.com/images/currencies/icons/default/bnt.svg"
+    },
+    {
+      "chainId": 1,
+      "address": "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
+      "name": "Binance USD",
+      "symbol": "BUSD",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/9576/thumb/BUSD.png?1568947766"
+    },
+    {
+      "name": "Compound",
+      "address": "0xc00e94Cb662C3520282E6f5717214004A7f26888",
+      "symbol": "COMP",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xc00e94Cb662C3520282E6f5717214004A7f26888/logo.png"
+    },
+    {
+      "name": "Curve DAO Token",
+      "address": "0xD533a949740bb3306d119CC777fa900bA034cd52",
+      "symbol": "CRV",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xD533a949740bb3306d119CC777fa900bA034cd52/logo.png"
+    },
+    {
+      "chainId": 1,
+      "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
+      "name": "Convex Finance",
+      "symbol": "CVX",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/15585/thumb/convex.png?1621256328"
+    },
+    {
+      "chainId": 1,
+      "name": "Dai",
+      "symbol": "DAI",
+      "decimals": 18,
+      "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+      "logoURI": "https://wallet-asset.matic.network/img/tokens/dai.svg"
+    },
+    {
+      "chainId": 1,
+      "address": "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
+      "name": "DeFi Pulse Index",
+      "symbol": "DPI",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/12465/thumb/defi_pulse_index_set.png?1600051053"
+    },
+    {
+      "chainId": 1,
+      "address": "0x92D6C1e31e14520e676a687F0a93788B716BEff5",
+      "name": "dYdX",
+      "symbol": "DYDX",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/17500/thumb/hjnIm9bV.jpg?1628009360"
+    },
+    {
+      "chainId": 1,
+      "address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+      "name": "Ethereum Name Service",
+      "symbol": "ENS",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/19785/thumb/acatxTm8_400x400.jpg?1635850140"
+    },
+    {
+      "chainId": 1,
+      "address": "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+      "name": "Frax",
+      "symbol": "FRAX",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/13422/thumb/frax_logo.png?1608476506"
+    },
+    {
+      "chainId": 1,
+      "address": "0x4E15361FD6b4BB609Fa63C81A2be19d873717870",
+      "name": "Fantom",
+      "symbol": "FTM",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/4001/thumb/Fantom.png?1558015016"
+    },
+    {
+      "chainId": 1,
+      "address": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+      "name": "Gitcoin",
+      "symbol": "GTC",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/15810/thumb/gitcoin.png?1621992929"
+    },
+    {
+      "chainId": 1,
+      "address": "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+      "name": "Gemini Dollar",
+      "symbol": "GUSD",
+      "decimals": 2,
+      "logoURI": "https://assets.coingecko.com/coins/images/5992/thumb/gemini-dollar-gusd.png?1536745278"
+    },
+    {
+      "name": "KyberNetwork",
+      "chainId": 1,
+      "symbol": "KNC",
+      "decimals": 18,
+      "address": "0xdd974D5C2e2928deA5F71b9825b8b646686BD200",
+      "logoURI": "https://gemini.com/images/currencies/icons/default/knc.svg"
+    },
+    {
+      "chainId": 1,
+      "address": "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32",
+      "name": "Lido DAO",
+      "symbol": "LDO",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/13573/thumb/Lido_DAO.png?1609873644"
+    },
+    {
+      "name": "ChainLink Token",
+      "address": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      "symbol": "LINK",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://etherscan.io/token/images/chainlinktoken_32.png?v=6"
+    },
+    {
+      "name": "LoopringCoin V2",
+      "address": "0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD",
+      "symbol": "LRC",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD/logo.png"
+    },
+    {
+      "chainId": 1,
+      "address": "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942",
+      "name": "Decentraland",
+      "symbol": "MANA",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/878/thumb/decentraland-mana.png?1550108745"
+    },
+    {
+      "chainId": 1,
+      "address": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+      "name": "Polygon",
+      "symbol": "MATIC",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png?1624446912"
+    },
+    {
+      "name": "Maker",
+      "address": "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
+      "symbol": "MKR",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2/logo.png"
+    },
+    {
+      "chainId": 1,
+      "address": "0x45804880De22913dAFE09f4980848ECE6EcbAf78",
+      "name": "PAX Gold",
+      "symbol": "PAXG",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/9519/thumb/paxg.PNG?1568542565"
+    },
+    {
+      "chainId": 1,
+      "address": "0xbC396689893D065F41bc2C6EcbeE5e0085233447",
+      "name": "Perpetual Protocol",
+      "symbol": "PERP",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/12381/thumb/60d18e06844a844ad75901a9_mark_only_03.png?1628674771"
+    },
+    {
+      "chainId": 1,
+      "address": "0x03ab458634910AaD20eF5f1C8ee96F1D6ac54919",
+      "name": "Rai Reflex Index",
+      "symbol": "RAI",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/14004/thumb/RAI-logo-coin.png?1613592334"
+    },
+    {
+      "chainId": 1,
+      "address": "0xba5BDe662c17e2aDFF1075610382B9B691296350",
+      "name": "SuperRare",
+      "symbol": "RARE",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/17753/thumb/RARE.jpg?1629220534"
+    },
+    {
+      "chainId": 1,
+      "address": "0xFca59Cd816aB1eaD66534D82bc21E7515cE441CF",
+      "name": "Rarible",
+      "symbol": "RARI",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/11845/thumb/Rari.png?1594946953"
+    },
+    {
+      "chainId": 1,
+      "address": "0x3845badAde8e6dFF049820680d1F14bD3903a5d0",
+      "name": "The Sandbox",
+      "symbol": "SAND",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/12129/thumb/sandbox_logo.jpg?1597397942"
+    },
+    {
+      "chainId": 1,
+      "address": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+      "name": "Shiba Inu",
+      "symbol": "SHIB",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/11939/thumb/shiba.png?1622619446"
+    },
+    {
+      "name": "Synthetix Network Token",
+      "address": "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
+      "symbol": "SNX",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F/logo.png"
+    },
+    {
+      "chainId": 1,
+      "address": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+      "name": "yearn finance",
+      "symbol": "YFI",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png?1598325330"
+    },
+    {
+      "name": "0x Protocol",
+      "address": "0xE41d2489571d322189246DaFA5ebDe1F4699F498",
+      "symbol": "ZRX",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xE41d2489571d322189246DaFA5ebDe1F4699F498/logo.png"
+    },
+    {
+      "name": "Uniswap",
+      "address": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      "symbol": "UNI",
+      "decimals": 18,
+      "chainId": 1,
+      "logoURI": "https://etherscan.io/token/images/uniswap_32.png"
+    },
+    {
+      "chainId": 1,
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "decimals": 6,
+      "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "logoURI": "https://wallet-asset.matic.network/img/tokens/usdc.svg"
+    },
+    {
+      "chainId": 1,
+      "name": "Staked LIDO",
+      "symbol": "stETH",
+      "decimals": 6,
+      "address": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+      "logoURI": "https://etherscan.io/token/images/lido-steth_32.png"
+    },
+    {
+      "chainId": 1,
+      "name": "Tether",
+      "symbol": "USDT",
+      "decimals": 6,
+      "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "logoURI": "https://wallet-asset.matic.network/img/tokens/usdt.svg"
+    },
+    {
+      "chainId": 1,
+      "name": "Wrapped Bitcoin",
+      "symbol": "WBTC",
+      "decimals": 8,
+      "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "logoURI": "https://etherscan.io/token/images/wbtc_28.png?v=1"
+    },
+    {
+      "name": "Wrapped Ether",
+      "address": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      "symbol": "WETH",
+      "decimals": 18,
+      "chainId": 137,
+      "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+      "extensions": {
+        "bridgeInfo": {
+          "1": {
+            "tokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+          }
         }
-    ]
-  }
-  
+      }
+    },
+    {
+      "name": "Wrapped Matic",
+      "address": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      "symbol": "WMATIC",
+      "decimals": 18,
+      "chainId": 137,
+      "logoURI": "https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png?1624446912"
+    }
+  ]
+}
+
 },{}],21:[function(require,module,exports){
 
 },{}]},{},[19]);

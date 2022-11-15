@@ -8,6 +8,13 @@ let tokens;
 
 async function init() {
   await listAvailableTokens();
+  document.getElementById("from_amount").value = 0;
+  document.getElementById("to_amount").value = 0;
+  document.getElementById("from_amount").placeholder = "Amount";
+  document.getElementById("to_amount").placeholder = "Amount";
+
+  document.getElementById("from_token_img").setAttribute("hidden", "hidden");
+  document.getElementById("to_token_img").setAttribute("hidden", "hidden");
 }
 
 async function listAvailableTokens() {
@@ -21,7 +28,7 @@ async function listAvailableTokens() {
     let div = document.createElement("div");
     div.className = "token_row";
     let html = `
-        <img class="token_list_img" src="${tokens[i].logoURI}">
+        <img class="token_list_img" src="${tokens[i].logoURI}" style="height:25px; width=25px border=0" >
           <span class="token_list_text">${tokens[i].symbol}</span>
           `;
     div.innerHTML = html;
@@ -45,11 +52,13 @@ function renderInterface() {
     document.getElementById("from_token_img").src = currentTrade.from.logoURI;
     document.getElementById("from_token_text").innerHTML =
       currentTrade.from.symbol;
+      document.getElementById("from_token_img").removeAttribute("hidden");
   }
   if (currentTrade.to) {
     console.log(currentTrade.to);
     document.getElementById("to_token_img").src = currentTrade.to.logoURI;
     document.getElementById("to_token_text").innerHTML = currentTrade.to.symbol;
+    document.getElementById("to_token_img").removeAttribute("hidden");
   }
 }
 
@@ -126,12 +135,8 @@ async function getPrice() {
     swapPriceJSON.buyAmount / 10 ** currentTrade.to.decimals;
   document.getElementById("gas_estimate").innerHTML =
     swapPriceJSON.estimatedGas;
+  }
 
-  updateTokenPairPrice();
-  printTokenPairChart();
-  document.getElementById("charts_title").innerHTML =
-    currentTrade.from.symbol + "\\" + currentTrade.to.symbol;
-}
 
 async function getQuote(account) {
   console.log("Getting Quote");
@@ -218,134 +223,3 @@ document.getElementById("to_token_select").onclick = () => {
 document.getElementById("modal_close").onclick = closeModal;
 document.getElementById("from_amount").onblur = getPrice;
 document.getElementById("swap_button").onclick = trySwap;
-
-//for the charts!!
-
-///  Calling API and modeling data for each chart ///
-
-const TokenPairData = async () => {
-  const sellToken = currentTrade.from.symbol;
-  const buyToken = currentTrade.to.symbol;
-
-  console.log("sell: ", currentTrade.from.symbol);
-  console.log("buy: ", currentTrade.to.symbol);
-  const response = await fetch(
-    `https://min-api.cryptocompare.com/data/v2/histominute?fsym=${sellToken}&tsym=${buyToken}&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`
-  );
-  //const response = await fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=LINK&tsym=DAI&limit=119&api_key=0646cc7b8a4d4b54926c74e0b20253b57fd4ee406df79b3d57d5439874960146`);
-
-  const json = await response.json();
-  const data = json.Data.Data;
-  console.log("data: ", json.Data.Data);
-  const times = data.map((obj) => obj.time);
-  const prices = data.map((obj) => obj.high);
-  return {
-    times,
-    prices,
-  };
-};
-
-/// Error handling ///
-function checkStatus(response) {
-  if (response.ok) {
-    return Promise.resolve(response);
-  } else {
-    return Promise.reject(new Error(response.statusText));
-  }
-}
-
-async function printTokenPairChart() {
-  let { times, prices } = await TokenPairData();
-  let TokenPairChart = document
-    .getElementById("TokenPairChart")
-    .getContext("2d");
-
-  let gradient = TokenPairChart.createLinearGradient(0, 0, 0, 400);
-
-  gradient.addColorStop(0, "rgba(78,56,216,.5)");
-  gradient.addColorStop(0.425, "rgba(118,106,192,0)");
-
-  Chart.defaults.global.defaultFontFamily = "Red Hat Text";
-  Chart.defaults.global.defaultFontSize = 12;
-  createTokenPairChart = new Chart(TokenPairChart, {
-    type: "line",
-    data: {
-      labels: times,
-      xValueType: "dateTime",
-      datasets: [
-        {
-          //label: "$",
-          data: prices,
-          backgroundColor: gradient,
-          borderColor: "rgba(118,106,192,1)",
-          borderJoinStyle: "round",
-          borderCapStyle: "round",
-          borderWidth: 3,
-          pointRadius: 0,
-          pointHitRadius: 10,
-          lineTension: 0.2,
-        },
-      ],
-    },
-
-    options: {
-      title: {
-        display: false,
-        text: "Simple Swapper Chart!",
-        fontSize: 35,
-      },
-
-      legend: {
-        display: false,
-      },
-
-      layout: {
-        padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-        },
-      },
-
-      scales: {
-        xAxes: [
-          {
-            display: true,
-            gridLines: {},
-          },
-        ],
-        yAxes: [
-          {
-            display: true,
-            gridLines: {},
-          },
-        ],
-      },
-
-      tooltips: {
-        callbacks: {
-          //This removes the tooltip title
-          title: function () {},
-        },
-        //this removes legend color
-        displayColors: false,
-        yPadding: 10,
-        xPadding: 10,
-        position: "nearest",
-        caretSize: 10,
-        backgroundColor: "rgba(255,255,255,.9)",
-        bodyFontSize: 15,
-        bodyFontColor: "#303030",
-      },
-    },
-  });
-}
-
-/// Update current price ///
-async function updateTokenPairPrice() {
-  let { times, prices } = await TokenPairData();
-  let currentPrice = prices[prices.length - 1].toFixed(2);
-
-  document.getElementById("ethPrice").innerHTML = currentPrice;
-}
