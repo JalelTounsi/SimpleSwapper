@@ -75,14 +75,14 @@ async function connect() {
       console.log("connected");
       console.log("account: ", accounts[0]);
       const accountPlaceholder = document.getElementById("accountPlaceholder");
+      const accountPlaceholder2 = document.getElementById("accountPlaceholder2");
       const wrapper = document.createElement("div");
       wrapper.innerHTML = [
-        `<div class="alert alert-success alert-dismissible fade show" role="alert">`,
-        `   <div>${accounts[0]}</div>`,
-        "</div>",
+        `${accounts[0]}`,
       ].join("");
 
       accountPlaceholder.append(wrapper);
+      accountPlaceholder2.append(wrapper);
       document.getElementById("login_button").disabled = true;
     } catch (error) {
       console.log(error);

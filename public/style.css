@@ -86,8 +86,8 @@ cards {
 .swapper,
 .TokenPair {
   display: grid;
-  max-width: 500px;
-  min-width: 450px;
+  max-width: 100%;
+  min-width: 100%;
   grid-template-columns: 1fr;
   grid-template-rows: minmax(50px, 60px) 1fr;
   grid-template:
