@@ -52,7 +52,7 @@ function renderInterface() {
     document.getElementById("from_token_img").src = currentTrade.from.logoURI;
     document.getElementById("from_token_text").innerHTML =
       currentTrade.from.symbol;
-      document.getElementById("from_token_img").removeAttribute("hidden");
+    document.getElementById("from_token_img").removeAttribute("hidden");
   }
   if (currentTrade.to) {
     console.log(currentTrade.to);
@@ -69,20 +69,16 @@ async function connect() {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
-      document.getElementById("login_button").innerHTML = "Connected";
+      document.getElementById("login_button").innerHTML = "You are Connected";
       $("#login_button").removeClass("btn-primary").addClass("btn-success");
       document.getElementById("swap_button").disabled = false;
       console.log("connected");
       console.log("account: ", accounts[0]);
       const accountPlaceholder = document.getElementById("accountPlaceholder");
-      const accountPlaceholder2 = document.getElementById("accountPlaceholder2");
       const wrapper = document.createElement("div");
-      wrapper.innerHTML = [
-        `${accounts[0]}`,
-      ].join("");
+      wrapper.innerHTML = [`${accounts[0]}`].join("");
 
       accountPlaceholder.append(wrapper);
-      accountPlaceholder2.append(wrapper);
       document.getElementById("login_button").disabled = true;
     } catch (error) {
       console.log(error);
@@ -135,8 +131,7 @@ async function getPrice() {
     swapPriceJSON.buyAmount / 10 ** currentTrade.to.decimals;
   document.getElementById("gas_estimate").innerHTML =
     swapPriceJSON.estimatedGas;
-  }
-
+}
 
 async function getQuote(account) {
   console.log("Getting Quote");
@@ -211,6 +206,13 @@ async function trySwap() {
   console.log("receipt: ", receipt);
 }
 
+function darkMode() {
+  let body = document.querySelector("body");
+  let mode = this.dataset.mode;
+  console.log(mode);
+  body.dataset.theme = mode;
+}
+
 init();
 
 document.getElementById("login_button").onclick = connect;
@@ -223,3 +225,31 @@ document.getElementById("to_token_select").onclick = () => {
 document.getElementById("modal_close").onclick = closeModal;
 document.getElementById("from_amount").onblur = getPrice;
 document.getElementById("swap_button").onclick = trySwap;
+
+// document.getElementById("light").onclick = darkMode;
+// document.getElementById("dark").onclick = darkMode;
+
+document.getElementById("theme").onclick = changeTheme;
+
+// function darkMode() {
+//   let body = document.querySelector("body");
+//   let mode = this.dataset.mode;
+//   console.log("1 - this.dataset.mode", mode);
+//   body.dataset.theme = mode;
+//   console.log("2 - body.dataset.theme", body.dataset.theme);
+// }
+function changeTheme() {
+  let body = document.querySelector("body");
+  console.log("0 - present body.dataset.theme", body.dataset.theme);
+  if (body.dataset.theme === "light") {
+    body.dataset.theme = "dark";
+    document.getElementById("change-theme-img").src = "./images/light.png";
+
+  }
+  else {
+    body.dataset.theme = "light";
+    document.getElementById("change-theme-img").src = "./images/dark.png";
+  }
+  //body.dataset.theme = body.dataset.theme === "dark" ? "light": "dark";
+  console.log("1 - future body.dataset.theme", body.dataset.theme);
+}
