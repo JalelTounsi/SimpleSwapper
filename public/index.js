@@ -28,7 +28,7 @@ async function listAvailableTokens() {
     let div = document.createElement("div");
     div.className = "token_row";
     let html = `
-        <img class="token_list_img" src="${tokens[i].logoURI}" style="height:25px; width=25px border=0" >
+        <img class="token_list_img" src="${tokens[i].logoURI}" >
           <span class="token_list_text">${tokens[i].symbol}</span>
           `;
     div.innerHTML = html;
@@ -238,15 +238,28 @@ document.getElementById("theme").onclick = changeTheme;
 //   body.dataset.theme = mode;
 //   console.log("2 - body.dataset.theme", body.dataset.theme);
 // }
+
+document.getElementById("check_darkmode").ontoggle = checkDarMode();
+
+function checkDarMode() {
+  let body = document.querySelector("body");
+  console.log("0 - present body.dataset.theme", body.dataset.theme);
+  if ((document.getElementById("check_darkmode").checked = true)) {
+    body.dataset.theme = "dark";
+    console.log("1 - dark?", body.dataset.theme);
+  }
+  if ((document.getElementById("check_darkmode").checked = false)) {
+    body.dataset.theme = "light";
+    console.log("2 - light?", body.dataset.theme);
+  }
+}
 function changeTheme() {
   let body = document.querySelector("body");
   console.log("0 - present body.dataset.theme", body.dataset.theme);
   if (body.dataset.theme === "light") {
     body.dataset.theme = "dark";
     document.getElementById("change-theme-img").src = "./images/light.png";
-
-  }
-  else {
+  } else {
     body.dataset.theme = "light";
     document.getElementById("change-theme-img").src = "./images/dark.png";
   }
