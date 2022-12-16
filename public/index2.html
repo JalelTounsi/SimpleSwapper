@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>DeX Aggregator</title>
+    <title>Bull & Bear</title>
     <link rel="icon" type="image/x-icon" href="images/mrRobot-icon.png">
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -15,13 +15,25 @@
     <link href="https://fonts.googleapis.com/css?family=Red+Hat+Text:400,500&display=swap" rel="stylesheet">
   </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#"><img src="images/mrRobot-32x32.png"> DeX Aggregator</a>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#"><img src="images/mrRobot-32x32.png" /> Bull & Bear</a>
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <div id="accountPlaceholder"></div> <button id="login_button" class="btn btn-primary btn-block  my-2 my-sm-0" type="submit"><img src="images/metamask.png" height="32" length="32"> Sign in with MetaMask</button>
-          </li>
-      </nav>
+            <li class="nav-item">
+                <span id="accountPlaceholder"></span>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-light" id="theme">
+                    <img id="change-theme-img" class="img_mode" src="./images/dark.png" />
+                </button>
+            </li>
+            <li class="nav-item">
+                <button id="login_button" class="btn btn-primary btn-block my-2 my-sm-0" type="submit">
+                    <img src="images/metamask.png" height="32" length="32" /> Connect
+                    Wallet
+                </button>
+            </li>
+        </ul>
+    </nav>
       <div class="container-fluid">
         <div class="row">
           <div class="col col-lg-8">
