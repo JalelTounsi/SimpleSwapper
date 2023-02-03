@@ -176,7 +176,7 @@ async function trySwap() {
 
   // Only work if MetaMask is connect
   // Connecting to Ethereum: Metamask
-  const web3 = new Web3(Web3.givenProvider);
+  web3 = new Web3(Web3.givenProvider);
 
   // The address, if any, of the most recently used account that the caller is permitted to access
   let accounts = await ethereum.request({ method: "eth_accounts" });
